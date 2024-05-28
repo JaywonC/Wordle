@@ -12,9 +12,7 @@ import edu.willamette.cs1.wordle.WordleGWindow;
 
 public class Wordle {
     String word;
-    String checked;
-    int r;
-
+    int attempts = 0;
     public void run() {
         gw = new WordleGWindow();
         gw.addEnterListener((s) -> enterAction(s));
@@ -29,89 +27,75 @@ public class Wordle {
     public void endGame(){
         gw.setCurrentRow(8);
     }
-    public void enterAction(String s) {
-        boolean isWord = false;
-        int index;
-        checked = word;
-        for (String canUse: WordleDictionary.FIVE_LETTER_WORDS) {
-            if ((canUse.equalsIgnoreCase(s))) {
-                isWord = true;
+    public void enterAction(String guess) {
+        boolean isValidWord = false;
+        for (String validWord : WordleDictionary.FIVE_LETTER_WORDS) {
+            if (validWord.equalsIgnoreCase(guess)) {
+                isValidWord = true;
+                break;
             }
         }
-        if (isWord) {
-            r++;
-            for (int i = 0; i < 5; i++) {
-                index = checked.indexOf(s.substring(i, i + 1));
-                if (index < 0) {
-                    gw.setSquareColor(gw.getCurrentRow(), i, WordleGWindow.MISSING_COLOR);
-                    gw.setKeyColor(s.substring(i, i + 1), WordleGWindow.MISSING_COLOR);
-                }
-            }
-            for (int i = 0; i < 5; i++) {
-                index = checked.indexOf(s.substring(i, i + 1));
-                if (s.substring(i, i + 1).equals(checked.substring(i, i + 1))) {
-                    gw.setSquareColor(gw.getCurrentRow(), i, WordleGWindow.CORRECT_COLOR);
-                    gw.setKeyColor(s.substring(i, i + 1), WordleGWindow.CORRECT_COLOR);
-                    s = s.substring(0, i) + "2" + s.substring(i + 1);
-                    checked = checked.substring(0, i) + "1" + checked.substring(i + 1);
-                }
-            }
-            for (int i = 0; i < 5; i++) {
-                index = checked.indexOf(s.substring(i, i + 1));
-                if (index >= 0 && s.indexOf(s.substring(i, i + 1)) >= 0) {
-                    gw.setSquareColor(gw.getCurrentRow(), i, WordleGWindow.PRESENT_COLOR);
-                    if (gw.getKeyColor(s.substring(i, i + 1).toUpperCase()) != WordleGWindow.CORRECT_COLOR) {
-                        gw.setKeyColor(s.substring(i, i + 1), WordleGWindow.PRESENT_COLOR);
-                    }
-                    s = s.substring(0, i) + "2" + s.substring(i + 1);
-                    checked = (checked.substring(0, index) + "1" + checked.substring(index + 1));
-                }
-            }
-
-            System.out.println(s + " " + checked);
-            System.out.println(gw.getSquareColor(gw.getCurrentRow(), 3) + " " + gw.getSquareColor(gw.getCurrentRow(), 4));
-            if (checked.equals("11111")) {
-                gw.setKeyColor("Q", new Color(255,215,0));
-                gw.setKeyColor("W", new Color(255,215,0));
-                gw.setKeyColor("A", new Color(255,215,0));
-                gw.setKeyColor("S", new Color(255,215,0));
-                gw.setKeyColor("Z", new Color(255,215,0));
-                gw.setKeyColor("E", new Color(255,215,0));
-                gw.setKeyColor("D", new Color(255,215,0));
-                gw.setKeyColor("X", new Color(255,215,0));
-                gw.setKeyColor("R", new Color(255,215,0));
-                gw.setKeyColor("F", new Color(255,215,0));
-                gw.setKeyColor("C", new Color(255,215,0));
-                gw.setKeyColor("T", new Color(255,215,0));
-                gw.setKeyColor("Y", new Color(255,215,0));
-                gw.setKeyColor("G", new Color(255,215,0));
-                gw.setKeyColor("V", new Color(255,215,0));
-                gw.setKeyColor("U", new Color(255,215,0));
-                gw.setKeyColor("H", new Color(255,215,0));
-                gw.setKeyColor("B", new Color(255,215,0));
-                gw.setKeyColor("I", new Color(255,215,0));
-                gw.setKeyColor("J", new Color(255,215,0));
-                gw.setKeyColor("N", new Color(255,215,0));
-                gw.setKeyColor("O", new Color(255,215,0));
-                gw.setKeyColor("P", new Color(255,215,0));
-                gw.setKeyColor("K", new Color(255,215,0));
-                gw.setKeyColor("L", new Color(255,215,0));
-                gw.setKeyColor("M", new Color(255,215,0));
-                gw.showMessage("Great");                
-                endGame();
-            }
-
-            if (r > 5) {
-                gw.showMessage(word);
-                endGame();
-            }
-
-            gw.setCurrentRow(gw.getCurrentRow() + 1);
-        } else {
+    
+        if (!isValidWord) {
             gw.showMessage("Not in word list");
+            return;
         }
+    
+        String targetWord = word;
+        attempts++;
+        
+        // First loop to check for missing letters
+        for (int i = 0; i < 5; i++) {
+            char guessChar = guess.charAt(i);
+            if (targetWord.indexOf(guessChar) < 0) {
+                gw.setSquareColor(gw.getCurrentRow(), i, WordleGWindow.MISSING_COLOR);
+                gw.setKeyColor(String.valueOf(guessChar), WordleGWindow.MISSING_COLOR);
+            }
+        }
+    
+        // Second loop to check for correct letters
+        for (int i = 0; i < 5; i++) {
+            char guessChar = guess.charAt(i);
+            if (guessChar == targetWord.charAt(i)) {
+                gw.setSquareColor(gw.getCurrentRow(), i, WordleGWindow.CORRECT_COLOR);
+                gw.setKeyColor(String.valueOf(guessChar), WordleGWindow.CORRECT_COLOR);
+                guess = guess.substring(0, i) + "2" + guess.substring(i + 1);
+                targetWord = targetWord.substring(0, i) + "1" + targetWord.substring(i + 1);
+            }
+        }
+    
+        // Third loop to check for present letters
+        for (int i = 0; i < 5; i++) {
+            char guessChar = guess.charAt(i);
+            int index = targetWord.indexOf(guessChar);
+            if (index >= 0 && guessChar != '2') {
+                gw.setSquareColor(gw.getCurrentRow(), i, WordleGWindow.PRESENT_COLOR);
+                if (gw.getKeyColor(String.valueOf(guessChar).toUpperCase()) != WordleGWindow.CORRECT_COLOR) {
+                    gw.setKeyColor(String.valueOf(guessChar), WordleGWindow.PRESENT_COLOR);
+                }
+                guess = guess.substring(0, i) + "2" + guess.substring(i + 1);
+                targetWord = targetWord.substring(0, index) + "1" + targetWord.substring(index + 1);
+            }
+        }
+    
+        System.out.println(guess + " " + targetWord);
+        System.out.println(gw.getSquareColor(gw.getCurrentRow(), 3) + " " + gw.getSquareColor(gw.getCurrentRow(), 4));
+        if (targetWord.equals("11111")) {
+            gw.showMessage("Great");
+            endGame();
+            return;
+        }
+    
+        if (attempts > 5) {
+            gw.showMessage(word);
+            endGame();
+            return;
+        }
+    
+        gw.setCurrentRow(gw.getCurrentRow() + 1);
     }
-
+    
+    
 
 /* Startup code */
 
