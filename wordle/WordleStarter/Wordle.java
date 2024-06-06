@@ -83,7 +83,6 @@ public class Wordle {
         
         String targetWord = word;
         attempts++;
-        gw.showMessage(word);
 
         // First loop to check for missing letters
         for (int i = 0; i < 5; i++) {
@@ -93,7 +92,6 @@ public class Wordle {
                 gw.setKeyColor(String.valueOf(guessChar), WordleGWindow.MISSING_COLOR);
             }
         }
-            gw.showMessage(word);
 
         // Second loop to check for correct letters
         for (int i = 0; i < 5; i++) {
